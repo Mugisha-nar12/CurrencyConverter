@@ -2,6 +2,10 @@
 
 This is a simple yet powerful currency converter application built with React. It allows you to convert between different currencies using real-time exchange rates, add favorite currency pairs, and view live exchange rates.
 
+## Live Demo
+
+You can view the deployed project on Netlify: [https://currencyconverter-exchange.netlify.app/]
+
 ## Features
 
 *   **Real-time Currency Conversion:** Convert any amount from one currency to another using the latest exchange rates.
