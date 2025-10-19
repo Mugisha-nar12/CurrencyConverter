@@ -3,10 +3,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faChartLine,
   faHistory,
-  faExchangeAlt,
   faStar,
   faMobileAlt,
 } from "@fortawesome/free-solid-svg-icons";
+import { FaArrowTrendUp } from "react-icons/fa6";
 
 function Footer({ symbols }) {
   const staticPopularCurrencies = ["USD", "EUR", "GBP", "JPY"];
@@ -19,16 +19,19 @@ function Footer({ symbols }) {
     <footer className="bg-gray-950 text-white py-12 px-8 font-sans">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 mb-8">
         <div className="flex flex-col space-y-4">
-          <div className="flex items-center text-2xl font-bold text-teal-600">
-            <FontAwesomeIcon icon={faExchangeAlt} className="mr-3" />
-            CurrencyExchange
+          <div className="flex items-center text-2xl font-bold text-teal-600 gap-2">
+            <FaArrowTrendUp className="text-2xl text-teal-600 dark:text-teal-400" />
+            <span className="text-2xl font-bold text-teal-700 dark:text-teal-300">
+              Currency
+              <span className="text-teal-600 dark:text-teal-400">Exchange</span>
+            </span>
           </div>
           <p className="text-gray-300 text-lg leading-relaxed">
             Real-time currency conversion and exchange rate tracking for global
             markets.
           </p>
-          <div className="flex items-center text-orange-400 text-base">
-            <span className="w-3 h-3 bg-orange-500 rounded-full mr-2 animate-pulse"></span>
+          <div className="flex items-center text-green-400 text-base">
+            <span className="w-3 h-3 bg-green-500 rounded-full mr-2 animate-pulse"></span>
             Live Data
           </div>
         </div>
@@ -50,11 +53,8 @@ function Footer({ symbols }) {
               />
               Historical charts
             </li>
-            <li className="flex items-center text-lg text-gray-200">
-              <FontAwesomeIcon
-                icon={faExchangeAlt}
-                className="mr-3 text-teal-600"
-              />
+            <li className="flex items-center text-lg text-gray-200 gap-2">
+              <FaArrowTrendUp className="text-2xl text-teal-600 dark:text-teal-400" />
               Currency converter
             </li>
             <li className="flex items-center text-lg text-gray-200">
