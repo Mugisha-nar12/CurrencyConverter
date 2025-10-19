@@ -1,4 +1,4 @@
-const API_KEY = import.meta.env.VITE_EXCHANGE_RATE_API_KEY;
+const API_KEY = process.env.VITE_EXCHANGE_RATE_API_KEY;
 const BASE_URL = 'https://api.freecurrencyapi.com/v1';
 
 export const fetchLatestRates = async (baseCurrency = 'USD') => {
