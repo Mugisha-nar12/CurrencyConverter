@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useReducer } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCaretUp, faCaretDown } from "@fortawesome/free-solid-svg-icons";
 
@@ -32,61 +32,52 @@ const pairCategories = {
   ],
 };
 
-const API_URL = "https://api.exchangerate-api.com/v4/latest/";
-
-const ratesReducer = (state, action) => {
-  switch (action.type) {
-    case "SET_RATES":
-      // On the first fetch, initialize both rates and historicalRates
-      if (Object.keys(state.rates).length === 0) {
-        return {
-          rates: action.payload,
-          historicalRates: action.payload,
-        };
-      }
-      // On subsequent fetches, update if the rates have changed
-      if (JSON.stringify(state.rates) !== JSON.stringify(action.payload)) {
-        return {
-          rates: action.payload,
-          historicalRates: state.rates, // old rates become historical
-        };
-      }
-      // If rates haven't changed, return the current state
-      return state;
-    default:
-      return state;
-  }
-};
-
 function LiveCurrencyPairs() {
-  const [ratesState, dispatch] = useReducer(ratesReducer, {
-    rates: {},
-    historicalRates: {},
-  });
-  const { rates, historicalRates } = ratesState;
+  const [rates, setRates] = useState({});
+  const [historicalRates, setHistoricalRates] = useState({});
   const [activeCategory, setActiveCategory] = useState("major");
 
-  const fetchRates = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}USD`);
-      if (!response.ok) throw new Error("Failed to fetch rates");
-      const data = await response.json();
-      dispatch({ type: "SET_RATES", payload: data.rates });
-    } catch (error) {
-      console.error("Error fetching rates:", error);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchRates();
-    // Refresh every 30 seconds
-    const interval = setInterval(fetchRates, 30000);
-    return () => clearInterval(interval);
-  }, [fetchRates]);
+    // Simulate fetching rates
+    const mockRates = {
+      USD: 1,
+      EUR: 0.9,
+      GBP: 0.8,
+      JPY: 130,
+      AUD: 1.4,
+      CHF: 0.95,
+      ZAR: 18,
+      TRY: 25,
+      BRL: 5,
+      INR: 82,
+      CNY: 7,
+      NGN: 750,
+      GHS: 12,
+      EGP: 30,
+      KES: 120,
+      UGX: 3700,
+      TZS: 2300,
+      RWF: 1000,
+      BIF: 2000,
+    };
+
+    const mockHistoricalRates = Object.keys(mockRates).reduce((acc, key) => {
+      acc[key] = mockRates[key] * (1 + (Math.random() - 0.5) * 0.02); // +/- 1%
+      return acc;
+    }, {});
+
+    setRates(mockRates);
+    setHistoricalRates(mockHistoricalRates);
+  }, []);
 
   const getRateAndChange = useCallback(
     (from, to) => {
-      if (!rates[from] || !rates[to]) {
+      if (
+        !rates[from] ||
+        !rates[to] ||
+        !historicalRates[from] ||
+        !historicalRates[to]
+      ) {
         return {
           price: "N/A",
           change: "N/A",

@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { fetchLatestRates } from "../api/currencyService";
 
 const currencies = [
   { code: "USD", name: "US Dollar", symbol: "$" },
@@ -22,87 +23,70 @@ const currencies = [
   { code: "TZS", name: "Tanzanian Shilling", symbol: "TSh" },
 ];
 
-const API_URL = "https://api.exchangerate-api.com/v4/latest/";
-
 function FavoritePairs({ newFavorite }) {
   const [favoritePairs, setFavoritePairs] = useState([
     { id: 1, from: "USD", to: "EUR", rate: 0 },
     { id: 2, from: "GBP", to: "USD", rate: 0 },
   ]);
-  const [ratesCache, setRatesCache] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  useEffect(() => {
-    if (newFavorite) {
-      setFavoritePairs((prevPairs) => [
-        ...prevPairs,
-        { ...newFavorite, id: Date.now() },
-      ]);
-    }
-  }, [newFavorite]);
+  const isFetchingRef = useRef(false);
 
   const getCurrencyByCode = useCallback(
     (code) => currencies.find((c) => c.code === code),
     []
   );
 
-  const fetchRates = useCallback(async (baseCurrency) => {
+  const updateRates = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    setIsRefreshing(true);
+
     try {
-      const response = await fetch(`${API_URL}${baseCurrency}`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch rates");
-      }
-      const data = await response.json();
-      setRatesCache((prevCache) => ({
-        ...prevCache,
-        [baseCurrency]: data.rates,
-      }));
-      return data.rates;
+      const ratesData = await fetchLatestRates("USD");
+      setFavoritePairs((prevPairs) =>
+        prevPairs.map((pair) => {
+          const fromRate = pair.from === "USD" ? 1 : ratesData[pair.from];
+          const toRate = pair.to === "USD" ? 1 : ratesData[pair.to];
+          if (fromRate && toRate) {
+            return { ...pair, rate: toRate / fromRate };
+          }
+          return { ...pair, rate: 0 };
+        })
+      );
     } catch (error) {
-      console.error("Error fetching rates:", error);
-      return null;
+      console.error("Failed to fetch favorite pair rates:", error);
+    } finally {
+      isFetchingRef.current = false;
+      setIsRefreshing(false);
+      setIsLoading(false);
     }
   }, []);
 
-  const updateRates = useCallback(async () => {
-    setIsRefreshing(true);
-    const allRates = { ...ratesCache };
-
-    for (const pair of favoritePairs) {
-      if (!allRates[pair.from]) {
-        const rates = await fetchRates(pair.from);
-        if (rates) {
-          allRates[pair.from] = rates;
-        }
-      }
-    }
-
-    const updatedPairs = favoritePairs.map((pair) => {
-      const rate = allRates[pair.from] ? allRates[pair.from][pair.to] : 0;
-      return { ...pair, rate: rate || 0 };
-    });
-
-    if (JSON.stringify(favoritePairs) !== JSON.stringify(updatedPairs)) {
-      setFavoritePairs(updatedPairs);
-    }
-
-    setIsLoading(false);
-    setIsRefreshing(false);
-  }, [favoritePairs, fetchRates, ratesCache]);
-
   useEffect(() => {
     updateRates();
-    const interval = setInterval(updateRates, 60 * 1000);
-    return () => clearInterval(interval);
   }, [updateRates]);
+
+  useEffect(() => {
+    if (newFavorite) {
+      setFavoritePairs((prevPairs) => [
+        ...prevPairs,
+        { ...newFavorite, id: Date.now(), rate: 0 },
+      ]);
+    }
+  }, [newFavorite]);
+
+  useEffect(() => {
+    if (favoritePairs.some((p) => p.rate === 0)) {
+      updateRates();
+    }
+  }, [favoritePairs, updateRates]);
 
   const handleRemovePair = (id) => {
     setFavoritePairs((prevPairs) => prevPairs.filter((pair) => pair.id !== id));
   };
 
   const handleRefreshAll = () => {
-    console.log("Rates refreshed!");
     updateRates();
   };
 

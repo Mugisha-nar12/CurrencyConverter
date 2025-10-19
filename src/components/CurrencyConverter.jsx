@@ -6,7 +6,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 function CurrencyConverter({ rates, symbols, onAddFavorite }) {
-  const [amount, setAmount] = useState(1);
+  const [amount, setAmount] = useState("1");
   const [fromCurrency, setFromCurrency] = useState("USD");
   const [toCurrency, setToCurrency] = useState("EUR");
   const [convertedAmount, setConvertedAmount] = useState(0);
@@ -32,15 +32,21 @@ function CurrencyConverter({ rates, symbols, onAddFavorite }) {
   }, [symbols, fromCurrency, toCurrency]);
 
   const calculateConversion = useCallback(() => {
-    if (!rates || !rates[fromCurrency] || !rates[toCurrency] || amount === 0) {
+    const numericAmount = parseFloat(amount);
+    if (
+      !rates ||
+      !rates[fromCurrency] ||
+      !rates[toCurrency] ||
+      !numericAmount
+    ) {
       setConvertedAmount(0);
       return;
     }
 
     const amountInBaseCurrency =
       fromCurrency === API_BASE_CURRENCY
-        ? amount
-        : amount / rates[fromCurrency];
+        ? numericAmount
+        : numericAmount / rates[fromCurrency];
 
     const result =
       toCurrency === API_BASE_CURRENCY
@@ -101,9 +107,8 @@ function CurrencyConverter({ rates, symbols, onAddFavorite }) {
           type="number"
           id="amount"
           value={amount}
-          onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+          onChange={(e) => setAmount(e.target.value)}
           className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-lg"
-          min="0"
           aria-label="Amount to convert"
         />
       </div>
@@ -187,7 +192,7 @@ function CurrencyConverter({ rates, symbols, onAddFavorite }) {
 
       <div className="bg-blue-50 p-5 rounded-lg text-center border border-blue-100">
         <p className="text-sm text-gray-600 mb-1">
-          {amount} {fromCurrency} equals
+          {parseFloat(amount) || 0} {fromCurrency} equals
         </p>
         <p className="text-4xl font-bold text-blue-700">
           {convertedAmount}{" "}
